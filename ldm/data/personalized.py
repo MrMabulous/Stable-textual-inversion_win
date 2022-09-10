@@ -125,7 +125,8 @@ class PersonalizedBase(Dataset):
 
     def __getitem__(self, i):
         example = {}
-        image = Image.open(self.image_paths[i % self.num_images])
+        image_path = self.image_paths[i % self.num_images]
+        image = Image.open(image_path)
 
         placeholder_string = self.placeholder_token
         if self.coarse_class_text:
@@ -146,11 +147,18 @@ class PersonalizedBase(Dataset):
             'a {} {}',
         ]
 
-        filename = os.path.basename(self.image_paths[i % self.num_images])
+        filename = os.path.basename(image_path)
         filename_tokens = os.path.splitext(filename)[0].replace(' ', '-').replace('_', '-').split('-')
         filename_tokens = [token for token in filename_tokens if token.isalpha()]
 
         text = random.choice(templates).format(' '.join(filename_tokens), self.placeholder_token)
+        
+        prompt_delimiter = "prompt-"
+        delimiter_index = filename.find(prompt_delimiter)
+        if delimiter_index != -1:
+            prompt_start_index = delimiter_index + len(prompt_delimiter)
+            prompt_end_index = filename.find(".", prompt_start_index)
+            text = filename[prompt_start_index:prompt_end_index].format(self.placeholder_token)
 
         example["caption"] = text
 
