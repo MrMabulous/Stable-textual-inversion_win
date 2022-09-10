@@ -98,12 +98,11 @@ class PersonalizedBase(Dataset):
 
     def __getitem__(self, i):
         example = {}
-        image = Image.open(self.image_paths[i % self.num_images])
-
-        image = image.convert('RGBA')
-        new_image = Image.new('RGBA', image.size, 'WHITE')
-        new_image.paste(image, (0, 0), image)
-        image = new_image.convert('RGB')
+        image_path = self.image_paths[i % self.num_images]
+        image = Image.open(image_path)
+        
+        if not image.mode == "RGB":
+            image = image.convert("RGB")
 
         templates = [
             'a {} portrait of {}',
@@ -115,11 +114,19 @@ class PersonalizedBase(Dataset):
             'a {} {}',
         ]
 
-        filename = os.path.basename(self.image_paths[i % self.num_images])
+        filename = os.path.basename(image_path)
         filename_tokens = os.path.splitext(filename)[0].replace('_', '-').split('-')
         filename_tokens = [token for token in filename_tokens if token.isalpha()]
 
         text = random.choice(templates).format(' '.join(filename_tokens), self.placeholder_token)
+        
+        prompt_delimiter = "prompt-"
+        delimiter_index = filename.find(prompt_delimiter)
+        if delimiter_index != -1:
+            prompt_start_index = delimiter_index + len(prompt_delimiter)
+            prompt_end_index = filename.find(".", prompt_start_index)
+            text = filename[prompt_start_index:prompt_end_index].format(self.placeholder_token)
+        
         print(text)
 
         example["caption"] = text
