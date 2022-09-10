@@ -114,8 +114,8 @@ class PersonalizedBase(Dataset):
             'a {} {}',
         ]
 
-        filename = os.path.basename(image_path)
-        filename_tokens = os.path.splitext(filename)[0].replace('_', '-').split('-')
+        filename = os.path.splitext(os.path.basename(image_path))[0]
+        filename_tokens = filename.replace('_', '-').split('-')
         filename_tokens = [token for token in filename_tokens if token.isalpha()]
 
         text = random.choice(templates).format(' '.join(filename_tokens), self.placeholder_token)
@@ -124,8 +124,9 @@ class PersonalizedBase(Dataset):
         delimiter_index = filename.find(prompt_delimiter)
         if delimiter_index != -1:
             prompt_start_index = delimiter_index + len(prompt_delimiter)
-            prompt_end_index = filename.find(".", prompt_start_index)
-            text = filename[prompt_start_index:prompt_end_index].format(self.placeholder_token)
+            text = filename[prompt_start_index:].format(self.placeholder_token).replace("_mask", '')
+        else:
+            print("filename does not contain prompt")
         
         print(text)
 
