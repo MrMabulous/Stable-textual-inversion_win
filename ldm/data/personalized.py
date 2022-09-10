@@ -132,10 +132,8 @@ class PersonalizedBase(Dataset):
         if self.coarse_class_text:
             placeholder_string = f"{self.coarse_class_text} {placeholder_string}"
 
-        image = image.convert('RGBA')
-        new_image = Image.new('RGBA', image.size, 'WHITE')
-        new_image.paste(image, (0, 0), image)
-        image = new_image.convert('RGB')
+        if not image.mode == "RGB":
+            image = image.convert("RGB")
 
         templates = [
             'a {} portrait of {}',
